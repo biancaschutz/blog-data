@@ -9,3 +9,5 @@ Analysis_files/
 *.R
 
 *.Rproj
+
+.DS_Store

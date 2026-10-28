@@ -1,0 +1,93 @@
+---
+title: "Gluten free grocery costs"
+format: html
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+
+data <- read.csv("gf_vs_regular.csv") |> drop_na()
+
+# this drops 3 items: white bread and rolled oats at Sam's Club, and AP flour at Trader Joe's
+```
+
+## Overall difference 
+
+```{r}
+mean(data$GF.Cost.per.oz) - mean(data$Regular.Cost.per.oz)
+```
+
+On average, GF costs 17 cents more per oz
+
+## By item type
+
+```{r}
+by_item <- data |> 
+  group_by(Item) |>
+  summarize(mean_diff = mean(GF.Cost.per.oz - Regular.Cost.per.oz), `Gluten free` = mean(GF.Cost.per.oz), Regular = mean(Regular.Cost.per.oz)) |> 
+  arrange(desc(mean_diff))
+
+by_item
+
+# for datawrapper 
+# by_item |> write.csv("export/by_item_avgs.csv")
+```
+
+```{r}
+by_item |> 
+  select(Item, `Gluten free`, Regular) |>
+  pivot_longer(c(`Gluten free`, Regular)) |>
+  ggplot(aes(x = value, y = Item)) + 
+  geom_line(aes(group = Item)) + 
+  geom_point(aes(color = name)) + 
+  scale_color_brewer("Type", palette = "Dark2") + 
+  cowplot::theme_minimal_vgrid() + 
+  scale_x_continuous("Cost/oz", labels = scales::dollar_format())
+```
+
+For some items, that gap increases to 27 cents (bread)
+
+```{r}
+bread_gap <- 0.27
+
+bread_gap * 52 * 20
+```
+
+
+## Store differences
+
+```{r}
+by_store <- data |> 
+  group_by(Store) |>
+  summarize(mean_diff = mean(GF.Cost.per.oz - Regular.Cost.per.oz), mean_gf = mean(GF.Cost.per.oz), mean_reg = mean(Regular.Cost.per.oz)) |> 
+  arrange(desc(mean_diff))
+
+by_store
+
+# for datawrapper 
+# by_store |> write.csv("export/by_store_avgs.csv")
+```
+
+```{r}
+by_store |> 
+  ggplot(aes(x = fct_reorder(Store, mean_diff), 
+             y = mean_diff)) + 
+  geom_col() + 
+  scale_y_continuous(labels = scales::dollar_format()) +
+  labs(x = NULL, y = "Mean difference per oz") + 
+  cowplot::theme_minimal_hgrid(10)
+```
+
+Trader Joe's, Sam's Club, and HEB are cheapest in terms of price difference.
+
+However, Trader Joe's has an average price of 34 cents per oz for GF items, making it the most expensive overall.
+
+## What about the sizes that are sold? 
+```{r}
+data |> 
+  mutate(size_diff = Ounces.in.GF - Ounces.in.Regular) |>
+  pull(size_diff) |> 
+  summary()
+```
+
+Spaghetti, etc. are typically in smaller quantities. Stores that sell in bulk didn't sometimes have a GF equivalent in bulk (hence the -112 oz for AP flour at Sam's Club)

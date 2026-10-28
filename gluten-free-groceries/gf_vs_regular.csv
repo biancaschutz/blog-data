@@ -1,0 +1,50 @@
+Item,Store,GF,Regular,GF Cost per oz,Regular Cost per oz,Ounces in GF,Ounces in Regular
+Spaghetti,Kroger,$1.50,0.88,0.13,0.06,12,16
+Spaghetti,Trader Joe's,$2.49,0.99,0.28,0.06,8.8,16
+Spaghetti,Target,$2.39,0.99,0.20,0.06,12,16
+Spaghetti,Publix,$3.31,1.65,0.28,0.10,12,16
+Spaghetti,Sam's Club,$8.98,5.48,0.19,0.06,48,96
+Spaghetti,Walmart,$2.48,0.98,0.21,0.06,12,16
+Spaghetti,HEB,$1.06,0.98,0.13,0.06,8,16
+White Bread,HEB,$4.92,1.25,0.21,0.06,24,20
+White Bread,Kroger,$5.99,1.19,0.33,0.07,18,16
+White Bread,Trader Joe's,$4.99,1.99,0.42,0.09,12,22
+White Bread,Target,$5.49,1.49,0.31,0.07,18,20
+White Bread,Publix,$8.29,2.95,0.46,0.15,18,20
+White Bread,Sam's Club,NA,4.87,NA,0.12,NA,40
+White Bread,Walmart,$5.54,1.27,0.39,0.06,14.1,20
+AP Flour,HEB,$3.48,1.32,0.22,0.04,16,32
+AP Flour,Kroger,$5.99,1.59,0.27,0.05,22,32
+AP Flour,Trader Joe's,NA,2.99,NA,0.04,NA,80
+AP Flour,Target,$2.89,2.59,0.18,0.03,16,80
+AP Flour,Publix,$8.63,2.19,0.18,0.07,48,32
+AP Flour,Sam's Club,$9.98,6.72,0.12,0.04,80,192
+AP Flour,Walmart,$8.49,1.32,0.35,0.04,24,32
+Granola,HEB,$4.37,3.48,0.40,0.25,11,14
+Granola,Kroger,$4.29,2.50,0.39,0.23,11,11
+Granola,Trader Joe's,$3.99,3.99,0.33,0.33,12,12
+Granola,Target,$4.59,2.99,0.42,0.27,11,11
+Granola,Publix,$7.97,6.63,0.66,0.60,12,11
+Granola,Sam's Club,$9.98,6.56,0.33,0.21,30,32
+Granola,Walmart,$4.68,2.67,0.43,0.24,11,11
+Pancake Mix,HEB,$4.74,0.95,0.32,0.16,15,6
+Pancake Mix,Kroger,$4.49,2.29,0.30,0.07,15,32
+Pancake Mix,Trader Joe's,$4.49,3.49,0.26,0.20,17.5,17.5
+Pancake Mix,Target,$3.19,2.69,0.20,0.08,16,32
+Pancake Mix,Publix,$5.09,4.09,0.34,0.20,15,20
+Pancake Mix,Sam's Club,$3.66,7.28,0.23,0.08,16,96
+Pancake Mix,Walmart,$2.97,1.98,0.19,0.06,16,32
+Frozen Pizza,HEB,$8.47,4.28,0.35,0.13,24.2,32.15
+Frozen Pizza,Kroger,$7.99,1.00,0.33,0.10,24.2,10.2
+Frozen Pizza,Trader Joe's,$5.49,4.79,0.47,0.32,11.6,15
+Frozen Pizza,Target,$6.79,2.19,0.55,0.21,12.34,10.5
+Frozen Pizza,Publix,$12.99,2.75,0.55,0.27,23.5,10.2
+Frozen Pizza,Sam's Club,$10.97,12.98,0.37,0.15,30,87.6
+Frozen Pizza,Walmart,$8.47,1.17,0.35,0.16,24.2,7.2
+Rolled Oats,HEB,$7.42,2.66,0.23,0.15,32,18
+Rolled Oats,Kroger,$6.49,4.49,0.36,0.11,18,42
+Rolled Oats,Trader Joe's,$4.99,3.99,0.21,0.12,24,32
+Rolled Oats,Target,$6.69,4.39,0.21,0.10,32,42
+Rolled Oats,Publix,$10.29,4.25,0.32,0.10,32,42
+Rolled Oats,Sam's Club,NA,7.98,NA,0.05,NA,160
+Rolled Oats,Walmart,$5.98,4.18,0.19,0.10,32,42
