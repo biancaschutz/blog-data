@@ -1,0 +1,232 @@
+---
+title: "Senate election analysis"
+author: "Bianca Schutz"
+format: html
+editor: visual
+---
+
+```{r, warning=FALSE, message=FALSE}
+library(haven)
+library(tidyverse)
+library(ggthemes)
+```
+
+## Setup
+
+Load in data from TPP, rename variables for readability and consistency across years: 
+
+```{r}
+june2018 <- read_sav("data/utex0033b_output.sav")  |> select(Q22, Q23, Q3A, Q15, starttime, endtime, pid7_utex_d,  pid7_utex_i, pid7_utex_r, pid7others, pid7_utex_other, PID3_utex, weight) |>
+  zap_labels() 
+colnames(june2018)[1:4] <- c("repop", "demop", "vote_enthus", "sen_vote")
+june2018$edition <- "0618"
+
+oct2018 <- read_dta("data/201810.dta") |> 
+  select(Q3C, Q16, 
+         # Q16A,
+         Q30, Q31, 
+         starttime, endtime, 
+         pid7_utex_d,pid7_utex_d,  pid7_utex_i, pid7_utex_r, pid7others, pid7_utex_other, PID3_utex, weight)|>
+  zap_labels() 
+colnames(oct2018)[1:4] <- c("vote_enthus", "sen_vote", 
+                            # "sen_vote_forced", 
+                            "repop", "demop")
+oct2018$edition <- "1018"
+
+
+june2026 <- read_sav("data/UTEX0069c_OUTPUT-74f1adc0.sav")|> select(Q3A, Q23, Q22_grid_A, Q22_grid_B, starttime, endtime, pid7_utex_d,pid7_utex_d,  pid7_utex_i, pid7_utex_r, pid7others, pid7_utex_other, PID3_utex, weight) |>
+  zap_labels()
+colnames(june2026)[1:4] <- c("vote_enthus", "sen_vote", "repop", "demop")
+june2026$edition <- "0626"
+
+
+oct2026 <- read_sav("data/UTEX0069e_OUTPUT-b1a0a667.sav") |> select(Q19_grid_A, Q19_grid_B, Q3A, Q21A, 
+                                                               Q21B, Q21C, combined_senate_vote, 
+                                                               starttime, endtime, pid7_utex_d,pid7_utex_d,  pid7_utex_i, pid7_utex_r, pid7others, pid7_utex_other, PID3_utex, weight)|>
+  zap_labels()
+colnames(oct2026)[1:6] <- c("repop", "demop", "vote_enthus", "sen_vote",
+ "sen_vote_forced", "sen_vote_change"
+                            ) 
+oct2026$edition <- "1026"
+
+combined <- rbind(june2018, june2026, oct2018, (oct2026 |> select(-combined_senate_vote, -sen_vote_forced, -sen_vote_change))) |> mutate(year=str_sub(edition, 3, 4), month=str_sub(edition, 1, 2)) |> 
+  mutate(sen_vote = case_when(sen_vote == 1 ~ "R", 
+                              sen_vote == 2 ~ "D", 
+                              sen_vote == 3 ~ "L", 
+                              sen_vote == 4 ~ "O", 
+                              sen_vote == 5 ~ "No opinion", 
+                              .default = NA))
+```
+
+## Vote choices
+
+Comparing vote choices across all 4 datasets, specifically the time trend from June-October for both election cycles:
+
+```{r, echo=FALSE}
+combined |>
+  # count by weight
+  count(month, year, sen_vote, wt = weight) |>
+  group_by(month, year) |>
+  mutate(pct = n / sum(n)) |>
+  filter(sen_vote %in% c("D", "R", "No opinion")) |>
+  ggplot(aes(x = month, y = pct, color = sen_vote, group = sen_vote)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~year) +
+  ggthemes::scale_color_fivethirtyeight( limits = c("D", "R", "No opinion"), labels = c("Democrat\n(O'Rourke/Talarico)", "Republican\n(Cruz/Paxton)", "Haven't thought about it\nenough to have an opinion")) +
+  cowplot::theme_minimal_hgrid() +
+  scale_y_continuous("Percent of 1200 respondents", labels = scales::percent_format()) + 
+  scale_x_discrete("Month") +
+  labs(color = "Senate vote choice")
+```
+
+### Trends
+
+- in 2018, Cruz was ahead in both polls
+
+- in 2026, gap is very narrow between the two
+
+- in 2018, % don't know decreased (and as a result % for Cruz and Beto increased as more people decided); in 2026, % undecided increased
+
+Guiding question for rest of analysis, therefore: who is undecided now, in October 2026? 
+
+### Will choices change? 
+
+```{r}
+oct2026 |> 
+  group_by(sen_vote_change) |>
+  count() |>
+  ungroup() |>
+  mutate(pct = n/sum(n), 
+         sen_vote_change = factor(sen_vote_change, levels = 1:5, labels = c("Very likely", 
+                                             "Somewhat likely", 
+                                             "Not very likely", 
+                                             "Not at all likely", "Don't know"))) 
+```
+
+Largely, votes will stay the same. 
+
+## Who are the voters who haven't thought about it? 
+
+```{r}
+combined |>
+  filter(sen_vote == "No opinion") |>
+  mutate(PID3_utex = factor(PID3_utex, c(1, 2, 3, 4, 5, 8),
+                            labels = c("Democrat", "Republican", "Independent",
+                                       "Other", "Not sure", "Skipped"))) |>
+  count(year, month, PID3_utex, wt = weight) |>
+  group_by(year, month) |>
+  mutate(pct = n / sum(n)) |>
+  ungroup() |>
+    drop_na() |>
+
+  ggplot(aes(x = month, y = pct, fill = fct_reorder(PID3_utex, pct))) +
+  geom_col(position = "dodge") +
+  scale_y_continuous("Percent of respondents", labels = scales::percent) +
+  facet_wrap(~year) + 
+  scale_fill_manual("UTexas 3-point\nparty index", values = c("Democrat" = "#007cfc", "Republican" = "#c71e1d", "Independent" = "#31992b", "Other" = "grey70", "Not sure" = "grey50"))
+```
+
+### Trends
+
+- Fewer Democrats in 2026 than 2018, again mostly independents
+
+- slightly more % Republican this year, but likely within margin of error
+
+### What do undecided voters think about candidates?
+
+```{r}
+oct2026_2 <- read_sav("data/UTEX0069e_OUTPUT-b1a0a667.sav")
+
+colors <- c(         "#009392FF", "#39B185FF","#9CCB86FF", "#E9E29CFF", "#EEB479FF", "#E88471FF", "#CF597EFF"
+)
+
+oct2026_2 |>
+  filter(Q21A == 5) |>
+  mutate(paxton = haven::as_factor(Q19_grid_A), 
+         talarico = haven::as_factor(Q19_grid_B)) |>
+  select(paxton, talarico, weight) |>
+  pivot_longer(c(paxton, talarico)) |>
+  count(name, value, wt = weight) |>
+  group_by(name) |>
+  mutate(pct = n / sum(n)) |>
+  ungroup() |>
+  ggplot(aes(y = value, x = pct, fill = value)) + 
+  geom_col() +
+  scale_x_continuous("Percent", labels = scales::percent) +
+  scale_y_discrete(NULL) + 
+  facet_wrap(~name, ncol = 1) + 
+  scale_fill_manual(values = c("Very favorable" = colors[1], "Somewhat favorable" = colors[3],
+                               "Neither favorable nor unfavorable" = colors[4],
+                               "Somewhat unfavorable" = colors[5], "Very unfavorable" = colors[6],
+                               "Don't know/No opinion" = "grey60"), guide = "none")
+  
+```
+
+### Trends
+
+- No major differences, both candidates have mostly neither favorable nor unfavorable opinions about them
+
+- unfavorable opinions a bit stronger about Paxton, Talarico has more responses for "no opinion" 
+
+## Datawrapper export
+
+```{r, eval=FALSE}
+overtime <- combined |>
+  count(month, year, sen_vote, wt = weight) |>
+  group_by(month, year) |>
+  mutate(pct = n / sum(n) * 100) |>
+  filter(sen_vote %in% c("D", "R", "No opinion"))
+
+overtime |> 
+  filter(sen_vote == "No opinion") |> 
+  select(-n, -sen_vote) |>
+  pivot_wider(names_from = year, values_from = pct) |>
+  write.csv("undecided.csv")
+
+overtime |>
+  filter(sen_vote %in% c("D", "R")) |>
+  select(-n) |> 
+  pivot_wider(names_from = c(sen_vote, year), values_from = pct) |>
+  write.csv("comparison.csv")
+
+overtime |>
+  filter(sen_vote %in% c("D", "R"), year == 26) |>
+  select(-n) |> 
+  pivot_wider(names_from = c(sen_vote), values_from = pct) |>
+  write.csv("this_year.csv")
+
+combined |>
+  filter(sen_vote == "No opinion") |>
+  mutate(PID3_utex = factor(PID3_utex, c(1, 2, 3, 4, 5, 8),
+                            labels = c("Democrat", "Republican", "Independent",
+                                       "Other", "Not sure", "Skipped"))) |>
+  count(year, month, PID3_utex, wt = weight) |>
+  group_by(year, month) |>
+  mutate(pct = n / sum(n) * 100) |>
+  ungroup() |> drop_na() |>
+  filter(month == 10) |> 
+  select(PID3_utex, pct, year) |> 
+  pivot_wider(names_from = year, values_from = pct) |>
+  write.csv("undecided.csv")
+
+oct2026_2 |>
+  filter(Q21A == 5) |>
+  mutate(paxton = haven::as_factor(Q19_grid_A), 
+         talarico = haven::as_factor(Q19_grid_B)) |>
+  select(paxton, talarico, weight) |>
+  pivot_longer(c(paxton, talarico)) |>
+  count(name, value, wt = weight) |>
+  group_by(name) |>
+  mutate(pct = n / sum(n) * 100) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = "value", values_from = "pct") |>
+  write.csv("opinions.csv")
+```
+
+## Further potential analyses
+
+- Undecided demographics
+
+- Who switched (demographically) from 2018 to 2026? Have heard reports that believe Texas Hispanics have swung back to vote Democrat after immigration crackdown - is that true? 
